@@ -6,7 +6,7 @@ from moz_sql_parser import parse
 from MV_Condidate_Generation.dataset_schema import Dataset_Schema
 from MV_Condidate_Generation.extract_predicats import ExtractPredicates
 from MV_Condidate_Generation.group_predicates import GroupPredicates
-from MV_Condidate_Generation.get_join_order_RTOS import Get_JO_from_file
+
 
 def ParseWorkload(Path_Workload):
     All_Queries = []
@@ -66,6 +66,10 @@ def ParseWorkload(Path_Workload):
                 value = element[key[0]]
                 table_name = list(value.values())[0].split('.')[0]
                 table_name = re.sub(r'\d+', '', table_name)
+                if (table_name == "miidx"):
+                    table_name = "mi_idx"
+                elif (table_name == "a"):
+                    table_name = "an"
                 Select_Attributes_By_Table[table_name].append(value)
 
         List_All_queries_with_their_Select_Attributes[id_query] = Select_Attributes_By_Table

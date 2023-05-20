@@ -168,17 +168,13 @@ def Get_Views_Info_From_MVPP(MVPP_With_Cost, List_All_queries_Frequencies, ListQ
     Queies_by_views1 = {}
     # List_Views : contains all join nodes in the MVPP
     List_Views = [n for n in MVPP_With_Cost.nodes() if str(n).__contains__('_J_')]
-
     for view in List_Views:
-
-
-
         if view in DiconbPageAccessed and DiconbPageGenerated and DiconbRowsGenerated:
             Dico_of_views1[view] = []
             Queies_by_views1[view] = []
-            view_creation_cost = float(DiconbPageAccessed[view])
-            view_size_in_pages = float(DiconbPageGenerated[view])
-            view_size_in_rows = float(DiconbRowsGenerated[view])
+            view_creation_cost = {"Total cost": float(DiconbPageAccessed[view])}
+            view_size_in_pages =  {"Size in pages":float(DiconbPageGenerated[view])  }
+            view_size_in_rows = {"Size in rows":float(DiconbRowsGenerated[view])}
             # [0] view creation cost [1]: size in pages , [2]: size in rows
 
             Dico_of_views1[view].append(view_creation_cost)

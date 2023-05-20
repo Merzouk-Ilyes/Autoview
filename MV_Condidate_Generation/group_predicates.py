@@ -10,7 +10,10 @@ def GroupPredicates(Predicates_List, Tables_list ,All_Join_Predicates,All_select
     # initialisation of the dico : Selection_Predicates_By_Table
     for table in Tables_list:
         table['name'] = re.sub(r'\d+', '', table['name'])
-
+        if (table['name'] == "miidx"):
+            table['name'] = "mi_idx"
+        elif (table['name'] == "a"):
+            table['name'] = "an"
         index_of_table = dataset_Schema[table['name']]
         Selection_Predicates_By_Table[index_of_table] = []
 

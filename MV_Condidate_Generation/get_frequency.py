@@ -18,11 +18,12 @@ def getFrequency(MVPP,Query_Graph):
 
     for node in MVPP_nodes:
         for q in list(Query_Graph.values()):
-            print("line19:",node,q.nodes())
-            for q_node in q.nodes():
-                if( has_path(MVPP,node,q_node)):
+            #print("line19:",node,max(q.nodes(), key=len))
+            #for q_node in q.nodes():
+            #print("line23:",node ,has_path(MVPP,node,list(q.nodes())[-1]) , list(q.nodes())[-1])
+            if( has_path(MVPP,node,list(q.nodes())[-1])):
                     frequency[node] +=1
-    print('line 21 :' , frequency)
+    #print('line 21 :' , frequency)
 
     return frequency
 
