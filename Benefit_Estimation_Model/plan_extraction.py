@@ -17,6 +17,7 @@ def getCostPlanJson(connexion,path_workload):
     cur.execute("SET join_collapse_limit = 1 ;")
     #cur.execute("SET geqo_threshold  = 12;")
     for q in queries:
+#        cur.execute("explain  (ANALYSE ,COSTS, FORMAT JSON) " + q)
         cur.execute("explain  (COSTS, FORMAT JSON) " + q)
         rows = cur.fetchall()
         plan_json = rows[0][0][0]
