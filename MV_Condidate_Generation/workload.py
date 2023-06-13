@@ -1,6 +1,6 @@
 import os
 import re
-
+import json
 from moz_sql_parser import parse
 
 from MV_Condidate_Generation.dataset_schema import Dataset_Schema
@@ -35,29 +35,78 @@ def ParseWorkload(Path_Workload):
 
     index_predicate = 1
     i = 0
+    All_queries_with_id_query = {}
     for query in All_Queries:  # for each query in the Workload
         id_query = 'Q' + str(i)
         i += 1
         All_queries_with_their_Tables[id_query] = []
+        # All_queries_with_id_query[id_query] = []
+        # All_queries_with_id_query[id_query] = query
+
+
+        # =========================================================================================================================
+
+        # tables_list = extract_tables(query)
+        # print("Tables_list:", tables_list)
+        #
+        # predicates_dict = extract_predicates(query)
+        # print("Predicates_Dictionary:", predicates_dict)
+
+        # =========================================================================================================================
+
         Parsed_Query = parse(query)
         All_Queries_Parsed[id_query] = Parsed_Query
+        # print(Parsed_Query )
+        # =======================================================
+        # data = json.loads(Parsed_Query)
+        tables = []
+        predicates = {}
+        predicates["and"] = []
+
+        def traverse_json(data):
+            if isinstance(data, dict):
+                for key, value in data.items():
+
+                    if (key == "from"):
+                        tables.append(value[0])
+                    if (key == "inner join"):
+                        tables.append(value)
+
+                    if (key == "and"):
+                        if (len(predicates['and']) == 0):
+                            predicates['and'] = value
+                        else:
+                            for value in value:
+                                predicates['and'].append(value)
+
+                    traverse_json(value)
+            elif isinstance(data, list):
+                for item in data:
+                    traverse_json(item)
+
+        traverse_json(Parsed_Query)
+
+        # print("tables EXPLICIT:",tables)
+        # print("predicates EXPLICIT:",predicates)
+
+        # =======================================================
         # Getting the list of tables accesed by the query
-        Tables_list = Parsed_Query['from']
+        # Tables_list = Parsed_Query['from']
 
         # Extracting the list of all predicats from the query
         Predicates = []
-        Predicates_Dictionary = Parsed_Query['where']
-        Predicates_List = ExtractPredicates(Predicates_Dictionary, Predicates)
+        # Predicates_Dictionary = Parsed_Query['where']
+        Predicates_List = ExtractPredicates(predicates, Predicates)
 
         All_Join_Predicates, Selection_Predicates_By_Table, All_selection_Predicates, index_predicate = \
-            GroupPredicates(Predicates_List, Tables_list, All_Join_Predicates, All_selection_Predicates,
+            GroupPredicates(Predicates_List, tables, All_Join_Predicates, All_selection_Predicates,
                             index_predicate)
         List_All_queries_with_their_Tables_and_their_Predicates[id_query] = Selection_Predicates_By_Table
 
         # Get the SELECT attributes
         DicoListSelectAttributes = Parsed_Query['select']
         Select_Attributes_By_Table = {}
-        for table in Tables_list:  # initialization
+        for table in tables:  # initialization
             Select_Attributes_By_Table[table['name']] = []
         for element in DicoListSelectAttributes:
 
@@ -74,11 +123,13 @@ def ParseWorkload(Path_Workload):
 
         List_All_queries_with_their_Select_Attributes[id_query] = Select_Attributes_By_Table
 
-        for table in Tables_list:
+        for table in tables:
             if dataset_Schema[table["name"]] not in All_queries_with_their_Tables[id_query]:
                 All_queries_with_their_Tables[id_query].append(dataset_Schema[table["name"]])
 
     file.close()
+
+    #print("ALL QUERIES WITH THEIR QUERY ID:",All_queries_with_id_query)
 
     return All_Queries, \
         All_queries_with_their_Tables, \

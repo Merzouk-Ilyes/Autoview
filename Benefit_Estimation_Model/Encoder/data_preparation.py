@@ -35,7 +35,7 @@ def data_preparation(data):
     # labels = labels.reshape(-1, 1)
 
     # Split data into train/test portions and combining all data from different files into a single array
-    test_portion = int(0.4 * len(data))
+    test_portion = int(1 * len(data))
     print("train_portion:",len(data) - test_portion)
     print("test_portion:",test_portion)
 
@@ -45,24 +45,26 @@ def data_preparation(data):
 
     train_x = []
     train_y = []
+    #max_length = max(len(seq) for seq in query_nodes_without_labels)
+
 
     # train_x = np.concatenate(( query_nodes_without_labels[:-test_portion]))
     # train_y = np.concatenate((query_nodes_labels[:-test_portion]))
-    train_x = query_nodes_without_labels[:-test_portion]
-    train_y = query_nodes_labels[:-test_portion]
+    train_x = query_nodes_without_labels[test_portion:]
+    #train_y = query_nodes_labels[:-test_portion]
 
-    total_costs_train = total_costs[:-test_portion]
-    total_costs_test = total_costs[-test_portion:]
+    total_costs_train = total_costs[test_portion:]
+    total_costs_test = total_costs[:test_portion]
     #     # print("train_x:", train_x)
     #     # print("train_y:", train_y)
 
 
     # train_x = np.concatenate( query_nodes_without_labels[:-test_portion])
     # train_y = np.concatenate( query_nodes_labels[:-test_portion])
-    test_x = (query_nodes_without_labels[-test_portion:])
-    test_y = (query_nodes_labels[-test_portion:])
+    test_x = (query_nodes_without_labels[:test_portion])
+    #test_y = (query_nodes_labels[-test_portion:])
 
-    return train_x,train_y ,test_x,test_y, total_costs_train,total_costs_test
+    return train_x, test_x, total_costs_train,total_costs_test
 
 
 

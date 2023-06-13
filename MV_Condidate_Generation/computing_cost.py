@@ -31,6 +31,7 @@ def ComputeCost(MVPP,
     # print("List_All_queries_with_their_Select_Attributes" ,List_All_queries_with_their_Select_Attributes)
     # get all inner nodes  join nodes and selection nodes
     #List_nodes = [n for n in List_nodes ]
+
     for node in List_nodes:  # for each inner node
 
 
@@ -56,7 +57,7 @@ def ComputeCost(MVPP,
 
             # table to join
             #joined_tables_in_node.append(Table_Name)
-            print("line 58:", joined_tables_in_node,joined_tables_in_node_for_sql_query)
+          #  print("line 58:", joined_tables_in_node,joined_tables_in_node_for_sql_query)
 
             #joined_tables_in_node_for_sql_query.append(tables_names_for_sql_query)
 
@@ -142,7 +143,7 @@ def ComputeCost(MVPP,
                                   (" AND " if len(table_conjunction_clause) > 0 and len(join_predicates_in_node) > 0 else " " ) + \
                                   ( '\n and \n'.join(list(set(join_predicates_in_node))) )
             elif (len(join_predicates_in_node) > 0) :
-                print("line143 computing_cost:",join_predicates_in_node)
+               # print("line143 computing_cost:",join_predicates_in_node)
                 node_sql_script = "select * " + \
                                   " \n from " + ' , '.join(merged_array) + \
                                   " \n where \n " + \
@@ -152,10 +153,10 @@ def ComputeCost(MVPP,
                 List_Nodes_With_SQL_Script[node] = str(node_sql_script).replace('\n', ' ')
 
 
-                print("VIEW SQL SCRIPT=>", List_Nodes_With_SQL_Script)
+               # print("VIEW SQL SCRIPT=>", List_Nodes_With_SQL_Script)
                 View_Plan_Total_Cost, plan_nb_rows, Plan_Width = \
                     GetSubTreeEstimatedCost_V1(node_sql_script, connexion)
-                print("GetSubTreeEstimatedCost_V1:",GetSubTreeEstimatedCost_V1(node_sql_script, connexion))
+               # print("GetSubTreeEstimatedCost_V1:",GetSubTreeEstimatedCost_V1(node_sql_script, connexion))
                 # get the total cost, the number rows, the row width
                 nbPageAccessed = round(
                     View_Plan_Total_Cost)  # Plan_Total_Cost :  is the sum of all node's total cost

@@ -3,8 +3,8 @@ import queue as q
 def MergePlan(Queries_Order_For_Merging, Dic_Query_With_Query_Join_tree_graph):
     first =True
     MVPP = nx.DiGraph()
-    print('merge plan:',Queries_Order_For_Merging )
-    print('merge plan:',Dic_Query_With_Query_Join_tree_graph )
+    # print('merge plan:',Queries_Order_For_Merging )
+    # print('merge plan:',Dic_Query_With_Query_Join_tree_graph )
     for query in Queries_Order_For_Merging:
         gg = Dic_Query_With_Query_Join_tree_graph[query]
         if first:
