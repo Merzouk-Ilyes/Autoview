@@ -27,7 +27,7 @@ def getFrequency(MVPP,Query_Graph):
             #     print("line23:",node ,has_path(MVPP,node,list(q.nodes())[-1]) , list(q.nodes())[-1])
             #     print("q.nodes=>>",list(q.nodes())[-1])
             #     if( has_path(MVPP,node,list(q.nodes())[-1])):
-          # print(list(q.nodes())[1])
+           #print(list(q.nodes()))
 
            if (node ==  list(q.nodes())[1]):
                 queries_with_corresponding_views[list(q.nodes())[-1]] = node
@@ -37,5 +37,5 @@ def getFrequency(MVPP,Query_Graph):
     print("QUERIES WITH CORRESPONDING VIEWS:",queries_with_corresponding_views)
 
 
-    return frequency
+    return frequency,queries_with_corresponding_views
 

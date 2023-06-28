@@ -26,10 +26,13 @@ def disconnect(conn):
 
 def optimizer_cost(conn, query, force_order):
     join_collapse_limit = "SET join_collapse_limit = "
-    join_collapse_limit += "1" if force_order else "8"
+    # Disable parallelism for the current session
+    join_collapse_limit += "1" if True else "8"
     # query = "set schema 'AED'; SET max_parallel_workers_per_gather = 0;" + join_collapse_limit + ";EXPLAIN (FORMAT JSON) " + query + ";"
     query = "set schema 'public';" + join_collapse_limit + ";EXPLAIN (FORMAT JSON) " + query + ";"
     cursor = conn.cursor()
+    #cursor.execute("SET max_parallel_workers_per_gather = 0")
+
 
     cursor.execute(query)
     rows = cursor.fetchone()

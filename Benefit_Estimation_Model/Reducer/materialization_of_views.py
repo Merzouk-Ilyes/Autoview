@@ -1,13 +1,10 @@
-from psycopg2 import errorcodes
-import psycopg2
 from psycopg2 import ProgrammingError
 from moz_sql_parser import parse
+import psycopg2
+from psycopg2 import Error
 
 
 def Materialize_view(view_script, view_name, cursor):
-    left = []
-    right = []
-
     schema = {
         "title": ["id", "kind_id", "production_year", "imdb_id", "episode_of_id", "season_nr", "episode_nr", "title",
                   "imdb_index", "phonetic_code", "series_years", "md5sum"], "role_type": ["id", "role"],
@@ -31,38 +28,40 @@ def Materialize_view(view_script, view_name, cursor):
 
     try:
         cursor.execute("ROLLBACK")
-        cursor.execute(view_script)
-        column_names = [desc[0] for desc in cursor.description]
-        # indexes = [index for index, value in enumerate(column_names) if value == "id"]
-        # id_idx = indexes[1]
-        # left = column_names[:id_idx]
-        # right = column_names[id_idx:]
-        # left = left[1:]
-        # right = right[1:]
 
         Parsed_Query = parse(view_script)
+        #Getting the view tables
         Tables_list = Parsed_Query['from']
+
+        #Getting the full name of the table
         left_table = Tables_list[0]["value"]
         right_table = Tables_list[1]["value"]
 
+        #Getting the aliases of the tables
         left_table_alias = Tables_list[0]["name"]
         right_table_alias = Tables_list[1]["name"]
+
+        #Concatenating the aliases with column names
         left = [left_table_alias + "." + element for element in schema[left_table]]
         right = [right_table_alias + "." + element for element in schema[right_table]]
 
-        left_aliases = [ left[i].split('.')[0]+"_"+left[i].split('.')[1] + str(i) for i in range(len(left))]
+        #Generating unique aliase  (table name + _ + table alias)
+        left_aliases = [ left[i].split('.')[0]+"_"+left[i].split('.')[1]  for i in range(len(left))]
         left_projections = [element + ' AS ' + alias for element, alias in zip(left, left_aliases)]
 
-        right_aliases = [right[i].split('.')[0]+"_"+right[i].split('.')[1] + str(i) for i in range(len(right))]
+        right_aliases = [right[i].split('.')[0]+"_"+right[i].split('.')[1]  for i in range(len(right))]
         right_projections = [element + ' AS ' + alias for element, alias in zip(right, right_aliases)]
 
-        #print(left_projections)
-        #print(schema[left_table] , schema[right_table])
-
         # Create the materialized view with unique column aliases
-        create_view_statement = f"CREATE MATERIALIZED VIEW V_{view_name} AS SELECT   {', '.join(left_projections)} , {', '.join(right_projections)} {view_script[8:]}"
-        cursor.execute(create_view_statement)
-        print(f"The view 'V_{view_name}' has been materialized.")
+        try:
+            create_view_statement = f"CREATE MATERIALIZED VIEW V_{view_name} AS SELECT   {', '.join(left_projections)} , {', '.join(right_projections)} {view_script[8:]}"
+            cursor.execute(create_view_statement)
+            print(f"The view 'V_{view_name}' has been materialized.")
+        except psycopg2.errors.DiskFull as e:
+            print("Disk full error:", e)
+            print("Skipping to the next statement...")
 
+        except Error as e:
+            print("Error executing the SQL statement:", e)
     except ProgrammingError as e:
         print(f"An error occurred while materializing the view '{view_name}': {e}")

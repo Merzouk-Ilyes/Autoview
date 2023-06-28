@@ -33,6 +33,7 @@ def GetQueriesEstimatedCost(List_All_queries, connexion):
     for SQLquery in List_All_queries:
         idQuery = 'Q' + str(i)
         i += 1
+        print(SQLquery)
         query_cost, JsonPlan_Format, Plan_rows, Plan_Width = Database.optimizer_cost(connexion, SQLquery,
                                                                                      True)
 

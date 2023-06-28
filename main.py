@@ -11,7 +11,6 @@ from MV_Condidate_Generation import join_graph, computing_cost
 from MV_Condidate_Generation.get_frequency import getFrequency
 from MV_Condidate_Generation.merge_plan import MergePlan
 from MV_Condidate_Generation.query_estimated_cost import GetQueriesEstimatedCost
-from MV_Condidate_Generation.view_benefit import get_view_row_size
 from MV_Condidate_Generation.workload import ParseWorkload
 import time
 import networkx as nx
@@ -34,13 +33,15 @@ if __name__ == '__main__':
     print("START AUTOVIEW")
     startime = time.time()
     connexion = Database.connect()
-    Path_Workload = '/Users/ilyes/Downloads/RTOS_freq_test'
+    Path_Workload = '/Users/ilyes/Downloads/RTOS_EXPLICIT_JOIN'
+    # Path_Workload = '/Users/ilyes/Downloads/queries/ii-113'
+    # Path_Workload = '/Users/ilyes/Downloads/queries/sa-113'
     #Path_Workload = '/Users/ilyes/Downloads/extended_job_queries_solutions'
 
     # # # PARSING==================================================================
     List_All_queries, List_All_queries_with_their_Tables, List_All_queries_with_their_Tables_and_their_Predicates, \
-        All_Join_Predicates, All_selection_Predicates, List_All_queries_with_their_Select_Attributes, Workload_Size, \
-        List_All_queries_with_their_parsed_format = ParseWorkload(Path_Workload)
+        All_Join_Predicates, All_selection_Predicates, Workload_Size, \
+        List_All_queries_with_their_parsed_format ,All_queries_with_id_query ,Queries_with_id_and_filename= ParseWorkload(Path_Workload)
 
 
     # DBMS COST ESTIMATION================================================================
@@ -48,8 +49,7 @@ if __name__ == '__main__':
         List_All_queries,
         connexion)
 
-    # for each query generate two tree : one with selection predicat and on called light whiout selection predicates
-    # according to the optimal join order extracted from postgresql
+
     Dic_Query_With_Query_Join_tree_graph = {}
     Dic_Query_With_Query_Join_tree_graph_Light = {}
     Dic_Query_by_Oreder_In_The_Workload = {}
@@ -59,13 +59,9 @@ if __name__ == '__main__':
 
     ListQueries = list(List_All_queries_with_their_Tables.keys())
     for query in List_All_queries_with_their_Tables:
-       # print(query)
-        # print(List_All_queries_with_their_Join_Order[query])
         Dico_query_tables_and_predicates = dict(List_All_queries_with_their_Tables_and_their_Predicates[query])
-        Dico_query_tables_and_selectAttributes = dict(List_All_queries_with_their_Select_Attributes[query])
+      #  Dico_query_tables_and_selectAttributes = dict(List_All_queries_with_their_Select_Attributes[query])
         query_join_order = List_All_queries_with_their_Tables[query]
-
-        # print("line52" ,Dico_query_tables_and_selectAttributes)
 
         Query_Join_tree_graph = join_graph.Create_Graph(query,
                                                         Dico_query_tables_and_predicates,
@@ -106,13 +102,15 @@ if __name__ == '__main__':
         MVPP,
         All_Join_Predicates,
         All_selection_Predicates,
-        Dico_query_tables_and_selectAttributes,
+
         Dataset_Schema,
         Dataset_Schema2,
         connexion)
 
-    frequency = getFrequency(MVPP, Dic_Query_With_Query_Join_tree_graph)
+    #Calculating frequency
+    frequency,queries_with_corresponding_views = getFrequency(MVPP, Dic_Query_With_Query_Join_tree_graph)
 
+    #Getting the views each with their cost
     views_with_cost = Get_Views_Info_From_MVPP(MVPP_With_Selection_0_With_Cost,
                                                frequency,
                                                ListQueries)
@@ -120,19 +118,21 @@ if __name__ == '__main__':
 
     MV_Condidates = {}
     for v in views_with_cost:
-            #row_size = get_view_row_size(List_Nodes_With_SQL_Script[v] , connexion)
             views_with_cost[v].append({"Frequency":frequency[v] } )
-            #views_with_cost[v].append({"View benefit": frequency[v] * views_with_cost[v][0]["Total cost"] })
     print("views_with_cost:", views_with_cost)
 
+
+    #Ordering the views on frequency
     views_with_cost = OrderedDict(sorted(views_with_cost.items(), key=lambda x: x[1][3]["Frequency"] , reverse=True))
 
     for v in views_with_cost.items():
         if (v[1][0] != 0):
             MV_Condidates[v[0]] = v[1]
 
+    #Getting the 10 best views
     MV_Condidates = dict(list(MV_Condidates.items())[:10])
 
+    #Getting the sql script of the views
     for v in MV_Condidates:
         MV_Condidates[v].append(List_Nodes_With_SQL_Script[v])
 
@@ -142,16 +142,20 @@ if __name__ == '__main__':
 
     nb_of_optimized_queries = 0
 
+    #Calculating the total number of optimized queries
     for frq in frequency.values():
         if frq > 1:
-
             nb_of_optimized_queries += frq
 
 
+    #Printing results
     print("TOTAL NUMBER OF OPTIMIZED QUERIES:", nb_of_optimized_queries)
-
+    views_to_be_materialized = []
     for v in MV_Condidates:
         print("VIEWS TO BE MATERIALIZED:",v, MV_Condidates[v][4])
+        views_to_be_materialized.append(v)
+
+
 
     # ================BENEFIT ESTIMATION PHASE===============================================================
 
@@ -161,4 +165,4 @@ if __name__ == '__main__':
 
 
     # ================REDUCER===============================================================================
-    Reducer(connexion,MV_Condidates)
+    Reducer(connexion,MV_Condidates,queries_with_corresponding_views,All_queries_with_id_query,views_to_be_materialized ,Queries_with_id_and_filename)

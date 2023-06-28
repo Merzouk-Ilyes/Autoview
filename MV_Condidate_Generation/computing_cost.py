@@ -6,7 +6,6 @@ from MV_Condidate_Generation.subtree_estimated_cost import GetSubTreeEstimatedCo
 def ComputeCost(MVPP,
                 All_Join_Predicates,
                 All_selection_Predicates,
-                List_All_queries_with_their_Select_Attributes,
                 DW_schema,
                 DW_schema2,
                 connexion):
